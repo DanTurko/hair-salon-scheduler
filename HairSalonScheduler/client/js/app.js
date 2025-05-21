@@ -44,21 +44,38 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
+            console.log("Auth: User logged in:", user.email); // LOG 1
             userStatusEl.textContent = `Logged in as: ${user.email}`;
             authFormsContainer.classList.add('hidden');
             logoutButton.classList.remove('hidden');
-            bookingSection.classList.remove('hidden');
+            if (bookingSection) { // LOG 2: Check if bookingSection was found
+                console.log("Auth: bookingSection found. Current classes before remove:", bookingSection.className);
+                bookingSection.classList.remove('hidden');
+                console.log("Auth: bookingSection classes after remove:", bookingSection.className); // Should not contain 'hidden'
+            } else {
+                console.error("Auth: bookingSection element NOT FOUND!"); // Critical error if this happens
+            }
             myAppointmentsContainer.classList.remove('hidden');
-            clientNameField.value = user.displayName || ''; // Pre-fill name if available
-            renderCalendar(); // Render calendar now that user is logged in
-            loadMyAppointments(); // Automatically load user's appointments
+            // Check if clientNameField exists before trying to set its value
+            if (clientNameField) {
+                clientNameField.value = user.displayName || '';
+            } else {
+                console.warn("Auth: clientNameField element NOT FOUND!");
+            }
+            console.log("Auth: Attempting to render calendar..."); // LOG 3
+            renderCalendar();
+            console.log("Auth: renderCalendar() call completed."); // LOG 4
+            loadMyAppointments();
         } else {
+            console.log("Auth: User logged out or no user."); // LOG 5
             userStatusEl.textContent = 'You are not logged in. Please login or sign up to book.';
             authFormsContainer.classList.remove('hidden');
             loginFormContainer.classList.remove('hidden'); // Show login by default
             signupFormContainer.classList.add('hidden');
             logoutButton.classList.add('hidden');
-            bookingSection.classList.add('hidden');
+            if (bookingSection) { // Hide booking section if logged out
+                bookingSection.classList.add('hidden');
+            }
             myAppointmentsContainer.classList.add('hidden');
             myAppointmentsListEl.innerHTML = ''; // Clear appointments list
         }
@@ -116,8 +133,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Calendar Logic (Identical to previous version) ---
+    // --- Calendar Logic ---
     const renderCalendar = () => {
+        console.log("renderCalendar: Function started."); // LOG 6
+        if (!calendarGrid) {
+            console.error("renderCalendar: calendarGrid element NOT FOUND!"); // Critical error
+            return;
+        }
+        console.log("renderCalendar: Clearing calendarGrid. Current month:", currentDate.toLocaleString('default', { month: 'long' }));
         calendarGrid.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -127,76 +150,182 @@ document.addEventListener('DOMContentLoaded', () => {
         const daysInMonth = lastDayOfMonth.getDate();
         const startingDayOfWeek = firstDayOfMonth.getDay();
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayNames.forEach(name => { /* ... */ calendarGrid.appendChild(dayNameEl); });
-        for (let i = 0; i < startingDayOfWeek; i++) { /* ... */ calendarGrid.appendChild(emptyCell); }
+        
+        // Add day names header
+        dayNames.forEach(name => { 
+            const dayNameEl = document.createElement('div');
+            dayNameEl.classList.add('calendar-day-name');
+            dayNameEl.textContent = name;
+            calendarGrid.appendChild(dayNameEl);
+        });
+        
+        // Add empty cells for days before the 1st of month
+        for (let i = 0; i < startingDayOfWeek; i++) { 
+            const emptyCell = document.createElement('div');
+            emptyCell.classList.add('calendar-day', 'other-month');
+            calendarGrid.appendChild(emptyCell);
+        }
+        
+        // Add day cells for the current month
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayCell = document.createElement('div'); dayCell.classList.add('calendar-day'); dayCell.textContent = day;
-            const dayDate = new Date(year, month, day); const today = new Date(); today.setHours(0,0,0,0);
+            console.log("renderCalendar: Processing day", day);
+            const dayCell = document.createElement('div');
+            dayCell.classList.add('calendar-day');
+            dayCell.textContent = day;
+            
+            const dayDate = new Date(year, month, day);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
             if (dayDate >= today) {
                 dayCell.classList.add('selectable');
                 dayCell.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 dayCell.addEventListener('click', handleDateClick);
-            } else { dayCell.classList.add('other-month'); }
-            if (selectedDate === dayCell.dataset.date) { dayCell.classList.add('selected'); }
+            } else {
+                dayCell.classList.add('other-month');
+            }
+            
+            if (selectedDate === dayCell.dataset.date) {
+                dayCell.classList.add('selected');
+            }
+            
             calendarGrid.appendChild(dayCell);
         }
+        
+        console.log("renderCalendar: Function finished. calendarGrid HTML length:", calendarGrid.innerHTML.length); // LOG 7
     };
-    const handleDateClick = (event) => { /* Identical */
+    
+    const handleDateClick = (event) => {
+        console.log("handleDateClick: Date clicked:", event.target.dataset.date);
         document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
-        event.target.classList.add('selected'); selectedDate = event.target.dataset.date;
+        event.target.classList.add('selected');
+        selectedDate = event.target.dataset.date;
         selectedDateDisplay.textContent = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        timeSlotsContainer.style.display = 'block'; bookingFormContainer.style.display = 'none';
+        timeSlotsContainer.style.display = 'block';
+        bookingFormContainer.style.display = 'none';
         loadAvailableTimeSlots(selectedDate);
     };
-    prevMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); });
-    nextMonthBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
+    
+    prevMonthBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    });
+    
+    nextMonthBtn.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    });
 
-    // --- Time Slot Logic (Identical to previous version) ---
-    const salonOpeningHour = 9; const salonClosingHour = 17; const slotDurationMinutes = 60;
-    const loadAvailableTimeSlots = async (dateStr) => { /* Identical */
+    // --- Time Slot Logic ---
+    const salonOpeningHour = 9;
+    const salonClosingHour = 17;
+    const slotDurationMinutes = 60;
+    
+    const loadAvailableTimeSlots = async (dateStr) => {
+        console.log("loadAvailableTimeSlots: Loading time slots for date:", dateStr);
         timeSlotsList.innerHTML = '<li>Loading...</li>';
         try {
-            const startOfDay = new Date(dateStr + 'T00:00:00Z'); const endOfDay = new Date(dateStr + 'T23:59:59Z');
-            const querySnapshot = await db.collection('appointments').where('dateTime', '>=', startOfDay.toISOString()).where('dateTime', '<=', endOfDay.toISOString()).get();
-            const bookedTimes = []; querySnapshot.forEach(doc => { const appDateTime = new Date(doc.data().dateTime); bookedTimes.push(`${String(appDateTime.getHours()).padStart(2, '0')}:${String(appDateTime.getMinutes()).padStart(2, '0')}`); });
+            const startOfDay = new Date(dateStr + 'T00:00:00Z');
+            const endOfDay = new Date(dateStr + 'T23:59:59Z');
+            
+            console.log("loadAvailableTimeSlots: Querying Firestore for date range:", startOfDay.toISOString(), "to", endOfDay.toISOString());
+            const querySnapshot = await db.collection('appointments')
+                .where('dateTime', '>=', startOfDay.toISOString())
+                .where('dateTime', '<=', endOfDay.toISOString())
+                .get();
+            
+            const bookedTimes = [];
+            querySnapshot.forEach(doc => {
+                const appDateTime = new Date(doc.data().dateTime);
+                bookedTimes.push(`${String(appDateTime.getHours()).padStart(2, '0')}:${String(appDateTime.getMinutes()).padStart(2, '0')}`);
+            });
+            
+            console.log("loadAvailableTimeSlots: Booked times for this date:", bookedTimes);
+            
             const availableSlots = [];
-            for (let hour = salonOpeningHour; hour < salonClosingHour; hour++) { for (let minute = 0; minute < 60; minute += slotDurationMinutes) { const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`; if (!bookedTimes.includes(timeStr)) { availableSlots.push(timeStr); } } }
-            timeSlotsList.innerHTML = ''; if (availableSlots.length === 0) { timeSlotsList.innerHTML = '<li>No available slots for this date.</li>'; return; }
-            availableSlots.forEach(time => { const li = document.createElement('li'); const button = document.createElement('button'); button.textContent = time;
-                button.addEventListener('click', () => { selectedTimeSlot = time; document.querySelectorAll('#time-slots-list button').forEach(btn => btn.classList.remove('selected-time')); button.classList.add('selected-time'); bookingFormContainer.style.display = 'block'; const fullDateTime = new Date(`${selectedDate}T${selectedTimeSlot}`); selectedDateTimeISOField.value = fullDateTime.toISOString(); bookingTimeDisplay.textContent = `${fullDateTime.toLocaleDateString()} at ${selectedTimeSlot}`; bookingMessageEl.textContent = ''; });
-                li.appendChild(button); timeSlotsList.appendChild(li); });
-        } catch (error) { console.error("Error loading time slots:", error); timeSlotsList.innerHTML = `<li>Error: ${error.message}</li>`; bookingMessageEl.textContent = `Error: ${error.message}`; }
+            for (let hour = salonOpeningHour; hour < salonClosingHour; hour++) {
+                for (let minute = 0; minute < 60; minute += slotDurationMinutes) {
+                    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+                    if (!bookedTimes.includes(timeStr)) {
+                        availableSlots.push(timeStr);
+                    }
+                }
+            }
+            
+            console.log("loadAvailableTimeSlots: Available slots:", availableSlots);
+            timeSlotsList.innerHTML = '';
+            
+            if (availableSlots.length === 0) {
+                timeSlotsList.innerHTML = '<li>No available slots for this date.</li>';
+                return;
+            }
+            
+            availableSlots.forEach(time => {
+                const li = document.createElement('li');
+                const button = document.createElement('button');
+                button.textContent = time;
+                button.addEventListener('click', () => {
+                    console.log("Time slot selected:", time);
+                    selectedTimeSlot = time;
+                    document.querySelectorAll('#time-slots-list button').forEach(btn => btn.classList.remove('selected-time'));
+                    button.classList.add('selected-time');
+                    bookingFormContainer.style.display = 'block';
+                    const fullDateTime = new Date(`${selectedDate}T${selectedTimeSlot}`);
+                    selectedDateTimeISOField.value = fullDateTime.toISOString();
+                    bookingTimeDisplay.textContent = `${fullDateTime.toLocaleDateString()} at ${selectedTimeSlot}`;
+                    bookingMessageEl.textContent = '';
+                });
+                li.appendChild(button);
+                timeSlotsList.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Error loading time slots:", error);
+            timeSlotsList.innerHTML = `<li>Error: ${error.message}</li>`;
+            bookingMessageEl.textContent = `Error: ${error.message}`;
+        }
     };
 
-    // --- Booking Form Logic (MODIFIED to use currentUser.uid and email) ---
+    // --- Booking Form Logic ---
     bookingForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!currentUser) {
             bookingMessageEl.textContent = 'You must be logged in to book.';
             return;
         }
+        
+        console.log("bookingForm: Submitting booking form");
         bookingMessageEl.textContent = 'Processing...';
         const dateTime = selectedDateTimeISOField.value;
-        const clientName = clientNameField.value.trim(); // Get name from form field
+        const clientName = clientNameField.value.trim();
         const service = document.getElementById('service').value;
 
-        if (!dateTime || !clientName || !service) { // Email is from currentUser
+        if (!dateTime || !clientName || !service) {
             bookingMessageEl.textContent = 'Please fill in all fields and select a time slot.';
             return;
         }
 
         try {
+            console.log("bookingForm: Adding appointment to Firestore:", {
+                dateTime,
+                clientName,
+                clientEmail: currentUser.email,
+                service,
+                creatorUid: currentUser.uid
+            });
+            
             await db.collection('appointments').add({
                 dateTime: dateTime,
-                clientName: clientName, // Name provided in form
-                clientEmail: currentUser.email, // Email from logged-in user
+                clientName: clientName,
+                clientEmail: currentUser.email,
                 service: service,
-                creatorUid: currentUser.uid, // UID from logged-in user
+                creatorUid: currentUser.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+            
+            console.log("bookingForm: Appointment successfully added to Firestore");
             bookingMessageEl.textContent = 'Appointment booked successfully!';
             bookingForm.reset();
-            clientNameField.value = currentUser.displayName || ''; // Re-fill if available
+            clientNameField.value = currentUser.displayName || '';
             bookingFormContainer.style.display = 'none';
             if (selectedDate) loadAvailableTimeSlots(selectedDate);
             loadMyAppointments(); // Refresh "My Appointments" list
@@ -207,25 +336,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Manage My Appointments Logic (MODIFIED for logged-in user) ---
+    // --- Manage My Appointments Logic ---
     loadMyAppointmentsBtn.addEventListener('click', loadMyAppointments);
 
     async function loadMyAppointments() {
+        console.log("loadMyAppointments: Loading appointments for user:", currentUser?.uid);
         if (!currentUser) {
             myAppointmentsMessageEl.textContent = "Please login to see your appointments.";
             myAppointmentsListEl.innerHTML = '';
             return;
         }
+        
         myAppointmentsListEl.innerHTML = "Loading your appointments...";
         myAppointmentsMessageEl.textContent = "";
 
         try {
             const querySnapshot = await db.collection('appointments')
-                .where('creatorUid', '==', currentUser.uid) // Query by creatorUid
+                .where('creatorUid', '==', currentUser.uid)
                 .orderBy('dateTime', 'asc')
                 .get();
 
+            console.log("loadMyAppointments: Found", querySnapshot.size, "appointments");
             myAppointmentsListEl.innerHTML = '';
+            
             if (querySnapshot.empty) {
                 myAppointmentsListEl.innerHTML = "<p>You have no appointments scheduled.</p>";
                 return;
@@ -253,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             myAppointmentsListEl.appendChild(ul);
 
+            console.log("loadMyAppointments: Setting up event handlers for appointment actions");
             ul.querySelectorAll('.update-my-appointment').forEach(button => {
                 button.addEventListener('click', handleUpdateMyAppointment);
             });
@@ -266,11 +400,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Update/Delete Logic (mostly same, relies on Firestore rules for auth) ---
+    // --- Update/Delete Logic ---
     const handleUpdateMyAppointment = async (event) => {
-        // currentUser check is implicitly handled by UI visibility and Firestore rules
         const appointmentId = event.target.dataset.id;
         const currentDateTimeISO = event.target.dataset.currentDatetime;
+        
+        console.log("handleUpdateMyAppointment: Updating appointment", appointmentId, "current datetime:", currentDateTimeISO);
 
         const newDateStr = prompt("Enter new date (YYYY-MM-DD):", currentDateTimeISO.substring(0, 10));
         if (!newDateStr) return;
@@ -278,17 +413,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!newTimeStr) return;
 
         const newFullDateTime = new Date(`${newDateStr}T${newTimeStr}`);
-        if (isNaN(newFullDateTime)) { alert("Invalid date or time format."); return; }
-        if (newFullDateTime < new Date()) { alert("Cannot book appointments in the past."); return; }
+        if (isNaN(newFullDateTime)) {
+            console.error("handleUpdateMyAppointment: Invalid date/time format provided:", newDateStr, newTimeStr);
+            alert("Invalid date or time format.");
+            return;
+        }
+        if (newFullDateTime < new Date()) {
+            console.error("handleUpdateMyAppointment: Attempted to book in the past:", newFullDateTime);
+            alert("Cannot book appointments in the past.");
+            return;
+        }
 
         myAppointmentsMessageEl.textContent = "Updating...";
         try {
+            console.log("handleUpdateMyAppointment: Updating appointment with new datetime:", newFullDateTime.toISOString());
             await db.collection('appointments').doc(appointmentId).update({
                 dateTime: newFullDateTime.toISOString()
             });
+            console.log("handleUpdateMyAppointment: Update successful");
             myAppointmentsMessageEl.textContent = 'Appointment time changed successfully!';
             loadMyAppointments(); // Refresh the list
-            if (selectedDate === newDateStr || selectedDate === currentDateTimeISO.substring(0,10)) { // refresh calendar slots if changed date is visible
+            if (selectedDate === newDateStr || selectedDate === currentDateTimeISO.substring(0,10)) {
                 loadAvailableTimeSlots(selectedDate);
             }
         } catch (error) {
@@ -299,11 +444,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleDeleteMyAppointment = async (event) => {
         const appointmentId = event.target.dataset.id;
-        if (!confirm("Are you sure you want to cancel this appointment?")) return;
+        console.log("handleDeleteMyAppointment: Attempting to delete appointment", appointmentId);
+        
+        if (!confirm("Are you sure you want to cancel this appointment?")) {
+            console.log("handleDeleteMyAppointment: User cancelled deletion");
+            return;
+        }
 
         myAppointmentsMessageEl.textContent = "Cancelling...";
         try {
+            console.log("handleDeleteMyAppointment: Deleting appointment from Firestore");
             await db.collection('appointments').doc(appointmentId).delete();
+            console.log("handleDeleteMyAppointment: Delete successful");
             myAppointmentsMessageEl.textContent = 'Appointment cancelled successfully!';
             loadMyAppointments(); // Refresh the list
             if (selectedDate) loadAvailableTimeSlots(selectedDate); // Refresh calendar view
