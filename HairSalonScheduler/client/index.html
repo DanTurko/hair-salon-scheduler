@@ -5,52 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hair Salon - Book Appointment</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Add some basic styling for auth forms */
+        .auth-container { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
+        .auth-container form { margin-bottom: 10px; }
+        .auth-container input { margin-right: 5px; margin-bottom: 5px; }
+        #user-status { margin-bottom:20px; font-weight: bold; }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
     <h1>Book Your Appointment</h1>
 
-    <div id="calendar-container">
-        <div id="calendar-header">
-            <button id="prev-month">&lt; Prev</button>
-            <h2 id="current-month-year">Month Year</h2>
-            <button id="next-month">Next &gt;</button>
+    <div id="user-status">Loading user status...</div>
+
+    <div id="auth-forms-container">
+        <div id="login-form-container" class="auth-container">
+            <h3>Login</h3>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit">Login</button>
+                <p id="login-error-message" class="error-message"></p>
+            </form>
+            <p>No account? <a href="#" id="show-signup">Sign Up here</a></p>
         </div>
-        <div id="calendar-grid">
+
+        <div id="signup-form-container" class="auth-container hidden">
+            <h3>Sign Up</h3>
+            <form id="signup-form">
+                <input type="email" id="signup-email" placeholder="Email" required>
+                <input type="password" id="signup-password" placeholder="Password (min. 6 chars)" required>
+                <button type="submit">Sign Up</button>
+                <p id="signup-error-message" class="error-message"></p>
+            </form>
+            <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+        </div>
+    </div>
+    <button id="logout-button" class="hidden">Logout</button>
+    <hr>
+
+    <div id="booking-section" class="hidden">
+        <div id="calendar-container">
+            <div id="calendar-header">
+                <button id="prev-month">&lt; Prev</button>
+                <h2 id="current-month-year">Month Year</h2>
+                <button id="next-month">Next &gt;</button>
             </div>
-    </div>
+            <div id="calendar-grid"></div>
+        </div>
 
-    <div id="time-slots-container" style="display:none;">
-        <h2>Available Times for <span id="selected-date-display"></span></h2>
-        <ul id="time-slots-list"></ul>
-    </div>
+        <div id="time-slots-container" style="display:none;">
+            <h2>Available Times for <span id="selected-date-display"></span></h2>
+            <ul id="time-slots-list"></ul>
+        </div>
 
-    <div id="booking-form-container" style="display:none;">
-        <h2>Book Appointment for <span id="booking-time-display"></span></h2>
-        <form id="booking-form">
-            <input type="hidden" id="selected-datetime-iso" required>
-            <label for="clientName">Name:</label>
-            <input type="text" id="clientName" required><br>
-            <label for="clientEmail">Email (for notifications & managing your booking):</label>
-            <input type="email" id="clientEmail" required><br>
-            <label for="service">Service:</label>
-            <select id="service">
-                <option value="Haircut">Haircut</option>
-                <option value="Coloring">Coloring</option>
-                <option value="Styling">Styling</option>
-                <option value="Wash & Blowdry">Wash & Blowdry</option>
-            </select><br>
-            <button type="submit">Book Now</button>
-            <p id="booking-message" class="message"></p>
-        </form>
+        <div id="booking-form-container" style="display:none;">
+            <h2>Book Appointment for <span id="booking-time-display"></span></h2>
+            <form id="booking-form">
+                <input type="hidden" id="selected-datetime-iso" required>
+                <label for="clientName">Name (for booking):</label>
+                <input type="text" id="clientName" required><br>
+                <label for="service">Service:</label>
+                <select id="service">
+                    <option value="Haircut">Haircut</option>
+                    <option value="Coloring">Coloring</option>
+                    <option value="Styling">Styling</option>
+                    <option value="Wash & Blowdry">Wash & Blowdry</option>
+                </select><br>
+                <button type="submit">Book Now</button>
+                <p id="booking-message" class="message"></p>
+            </form>
+        </div>
     </div>
 
     <hr style="margin: 30px 0;">
 
-    <div id="my-appointments-container">
-        <h2>Manage My Appointments</h2>
-        <label for="search-email">Enter your email to find your appointments:</label>
-        <input type="email" id="search-email-my-bookings">
-        <button id="find-my-appointments">Find My Appointments</button>
+    <div id="my-appointments-container" class="hidden">
+        <h2>My Appointments</h2>
+        <button id="load-my-appointments">Load My Appointments</button>
         <div id="my-appointments-list"></div>
         <p id="my-appointments-message" class="message"></p>
     </div>
