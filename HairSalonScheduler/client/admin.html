@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Hair Salon</title>
+    <link rel="stylesheet" href="css/style.css"> </head>
+<body>
+    <div class="login-container">
+        <h2>Admin Login</h2>
+        <form id="admin-login-form">
+            <label for="admin-email">Email:</label>
+            <input type="email" id="admin-email" required><br>
+            <label for="admin-password">Password:</label>
+            <input type="password" id="admin-password" required><br>
+            <button type="submit">Login</button>
+            <p id="login-error" class="error-message"></p>
+        </form>
+        <p>Go to <a href="index.html">User Booking Page</a></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

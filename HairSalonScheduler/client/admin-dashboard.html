@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Manage Appointments</title>
+    <link rel="stylesheet" href="css/style.css"> </head>
+<body>
+    <div class="dashboard-container">
+        <h1>Admin Dashboard</h1>
+        <button id="logout-button">Logout</button>
+        <p id="admin-welcome"></p>
+        <hr>
+
+        <h2>Create New Appointment (Admin)</h2>
+        <form id="admin-create-form">
+            <label for="admin-datetime">Date & Time:</label>
+            <input type="datetime-local" id="admin-datetime" required><br>
+            <label for="admin-clientName">Client Name:</label>
+            <input type="text" id="admin-clientName" required><br>
+            <label for="admin-clientEmail">Client Email:</label>
+            <input type="email" id="admin-clientEmail" required><br>
+            <label for="admin-service">Service:</label>
+            <select id="admin-service">
+                <option value="Haircut">Haircut</option>
+                <option value="Coloring">Coloring</option>
+                <option value="Styling">Styling</option>
+                <option value="Wash & Blowdry">Wash & Blowdry</option>
+                <option value="Other">Other</option>
+            </select><br>
+            <button type="submit">Create Appointment</button>
+            <p id="admin-create-message" class="message"></p>
+        </form>
+        <hr>
+
+        <h2>All Appointments</h2>
+        <label for="filter-date">Filter by date:</label>
+        <input type="date" id="filter-date">
+        <button id="clear-filter">Clear Filter</button>
+        <button id="export-csv" style="margin-left: 10px;">Export Visible to CSV</button>
+
+        <div id="admin-appointments-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Client Name</th>
+                        <th>Client Email</th>
+                        <th>Service</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-appointments-tbody">
+                    </tbody>
+            </table>
+        </div>
+        <p id="admin-table-message" class="message"></p>
+
+        <div id="update-modal" style="display:none; position:fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;padding-top:50px;">
+            <div style="background:white; width:50%; margin:auto; padding:20px; border-radius:5px;">
+                <h3>Update Appointment</h3>
+                <input type="hidden" id="update-id">
+                <label for="update-datetime">Date & Time:</label>
+                <input type="datetime-local" id="update-datetime" required><br>
+                <label for="update-clientName">Client Name:</label>
+                <input type="text" id="update-clientName" required><br>
+                <label for="update-clientEmail">Client Email:</label>
+                <input type="email" id="update-clientEmail" required><br>
+                <label for="update-service">Service:</label>
+                 <select id="update-service">
+                    <option value="Haircut">Haircut</option>
+                    <option value="Coloring">Coloring</option>
+                    <option value="Styling">Styling</option>
+                    <option value="Wash & Blowdry">Wash & Blowdry</option>
+                    <option value="Other">Other</option>
+                </select><br>
+                <button id="save-update-button">Save Changes</button>
+                <button id="cancel-update-button" type="button">Cancel</button>
+                <p id="update-modal-message" class="message"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script>
+        // Define your Admin UID here, copy it from Firebase Authentication Console for your admin user.
+        // This should ideally match the one in your Firestore security rules.
+        const ADMIN_UID = 'V7RNxwm3BuMPxbbC9kXHhGmQ6es2'; // <<< IMPORTANT: REPLACE THIS
+    </script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>

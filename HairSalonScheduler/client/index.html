@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hair Salon - Book Appointment</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>Book Your Appointment</h1>
+
+    <div id="calendar-container">
+        <div id="calendar-header">
+            <button id="prev-month">&lt; Prev</button>
+            <h2 id="current-month-year">Month Year</h2>
+            <button id="next-month">Next &gt;</button>
+        </div>
+        <div id="calendar-grid">
+            </div>
+    </div>
+
+    <div id="time-slots-container" style="display:none;">
+        <h2>Available Times for <span id="selected-date-display"></span></h2>
+        <ul id="time-slots-list"></ul>
+    </div>
+
+    <div id="booking-form-container" style="display:none;">
+        <h2>Book Appointment for <span id="booking-time-display"></span></h2>
+        <form id="booking-form">
+            <input type="hidden" id="selected-datetime-iso" required>
+            <label for="clientName">Name:</label>
+            <input type="text" id="clientName" required><br>
+            <label for="clientEmail">Email (for notifications & managing your booking):</label>
+            <input type="email" id="clientEmail" required><br>
+            <label for="service">Service:</label>
+            <select id="service">
+                <option value="Haircut">Haircut</option>
+                <option value="Coloring">Coloring</option>
+                <option value="Styling">Styling</option>
+                <option value="Wash & Blowdry">Wash & Blowdry</option>
+            </select><br>
+            <button type="submit">Book Now</button>
+            <p id="booking-message" class="message"></p>
+        </form>
+    </div>
+
+    <hr style="margin: 30px 0;">
+
+    <div id="my-appointments-container">
+        <h2>Manage My Appointments</h2>
+        <label for="search-email">Enter your email to find your appointments:</label>
+        <input type="email" id="search-email-my-bookings">
+        <button id="find-my-appointments">Find My Appointments</button>
+        <div id="my-appointments-list"></div>
+        <p id="my-appointments-message" class="message"></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
