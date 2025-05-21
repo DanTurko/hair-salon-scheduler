@@ -1,7 +1,10 @@
 // client/js/app.js
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM fully loaded and parsed");
+    
     // Auth UI Elements
     const userStatusEl = document.getElementById('user-status');
+    console.log("Element user-status found:", !!userStatusEl);
     const authFormsContainer = document.getElementById('auth-forms-container');
     const loginFormContainer = document.getElementById('login-form-container');
     const signupFormContainer = document.getElementById('signup-form-container');
@@ -62,9 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 console.warn("Auth: clientNameField element NOT FOUND!");
             }
-            console.log("Auth: Attempting to render calendar..."); // LOG 3
-            renderCalendar();
-            console.log("Auth: renderCalendar() call completed."); // LOG 4
+            try {
+                console.log("Auth: Attempting to render calendar..."); // LOG 3
+                renderCalendar();
+                console.log("Auth: renderCalendar() call completed."); // LOG 4
+            } catch (error) {
+                console.error("Auth: Error rendering calendar:", error);
+            }
             loadMyAppointments();
         } else {
             console.log("Auth: User logged out or no user."); // LOG 5
@@ -144,7 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
         calendarGrid.innerHTML = '';
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
-        currentMonthYearEl.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+        
+        if (!currentMonthYearEl) {
+            console.error("renderCalendar: currentMonthYearEl element NOT FOUND!");
+        } else {
+            currentMonthYearEl.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+        }
+        
         const firstDayOfMonth = new Date(year, month, 1);
         const lastDayOfMonth = new Date(year, month + 1, 0);
         const daysInMonth = lastDayOfMonth.getDate();
@@ -152,7 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         
         // Add day names header
-        dayNames.forEach(name => { 
+        dayNames.forEach(name => {
+            console.log("renderCalendar: Adding day name:", name);
             const dayNameEl = document.createElement('div');
             dayNameEl.classList.add('calendar-day-name');
             dayNameEl.textContent = name;
